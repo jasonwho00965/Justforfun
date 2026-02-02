@@ -3,12 +3,14 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const { message } = await req.json();
-    const apiKey = process.env.DEEPSEEK_API_KEY;
+ // 修改这一行
+const apiKey = process.env.DEEPSEEK_API_KEY || process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY;
 
-    if (!apiKey) {
-      console.error("DEEPSEEK_API_KEY is missing in .env.local");
-      return NextResponse.json({ error: "配置缺失" }, { status: 500 });
-    }
+if (!apiKey) {
+  // 加上这一行，我们在 Vercel 的 Logs 里就能看到真相
+  console.error("Critical: API Key is undefined in production environment.");
+  return NextResponse.json({ error: "配置缺失", tech_note: "Check Vercel Logs" }, { status: 500 });
+}
 
     // 1. 调用 DeepSeek 接口
     const response = await fetch("https://api.deepseek.com/chat/completions", {
